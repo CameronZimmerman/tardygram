@@ -96,6 +96,35 @@ describe('Tardygram routes', () => {
       })
   })
 
+  it('updates a posts caption when given an id', async () => {
+    await User.insert(user);
+
+    await request(app)
+      .post('/api/v1/posts')
+      .send(post)
+
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment)
+      .then(console.log(comment))
+
+    return request(app)
+      .patch('/api/v1/posts/1')
+      .send({caption: "this is my new caption!!!!!"})
+      .then((res) => {
+        expect(res.body).toEqual(
+          {
+            caption: "this is my new caption!!!!!",
+            comments: ["this is a comment"],
+            id: "1",
+            photoUrl: "/some-image.jpg",
+            tags: ["one", "two", "three"],
+            username: "test-user"
+          }
+        )
+      })
+  })
+
   // comment tests
   it('inserts a comment into the database via POST', async () => {
     await User.insert(user);
