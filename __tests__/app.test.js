@@ -124,6 +124,34 @@ describe('Tardygram routes', () => {
       })
   })
 
+  it('deletes a post from the database when given an idea via DELETE', async () => {
+    await User.insert(user);
+
+    await request(app)
+      .post('/api/v1/posts')
+      .send(post)
+
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment)
+
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment2)
+
+    return request(app)
+      .delete('/api/v1/post/1')
+      .then((res) => {
+        expect(res.body).toEqual({
+          caption: "new image",
+          id: "1",
+          photoUrl: "/some-image.jpg",
+          tags: ["one", "two", "three"],
+          username: "test-user"
+        })
+      })
+  })
+
   // comment tests
   it('inserts a comment into the database via POST', async () => {
     await User.insert(user);
