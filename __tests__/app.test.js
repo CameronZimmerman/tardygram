@@ -115,7 +115,6 @@ describe('Tardygram routes', () => {
         expect(res.body).toEqual(
           {
             caption: "this is my new caption!!!!!",
-            comments: ["this is a comment"],
             id: "1",
             photoUrl: "/some-image.jpg",
             tags: ["one", "two", "three"],
