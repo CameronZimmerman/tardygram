@@ -35,6 +35,18 @@ describe('Tardygram routes', () => {
       .then((res) => {
         expect(res.body).toEqual({id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']})
       })
+  })
+
+  it('inserts a post into the database via POST', async () => {
+    const user = await User.insert({
+      username: 'test-user',
+      photoUrl: '/some-image.jpg'
+    })
+    return request(app)
+      .get('/api/v1/posts')
+      .then((res) => {
+        expect(res.body).toEqual({id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']})
+      })
 
   })
 });
