@@ -15,6 +15,11 @@ const post = {
   tags: ['one', 'two', 'three']
 };
 
+const comment = {
+  comment: 'this is a comment',
+  post: '1',
+};
+
 // jest.useFakeTimers()
 jest.mock('../lib/middleware/ensureAuth.js', () => (req, res, next) => {
   req.user = {
@@ -57,6 +62,7 @@ describe('Tardygram routes', () => {
         expect(res.body).toEqual([{id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']}])
       })
   })
+
   it('gets a posts when given an id', async () => {
     await User.insert(user);
 
@@ -72,7 +78,6 @@ describe('Tardygram routes', () => {
   })
 
   // comment tests
-
   it('inserts a comment into the database via POST', async () => {
     await User.insert(user);
 
@@ -90,5 +95,24 @@ describe('Tardygram routes', () => {
         expect(res.body).toEqual({id: '1', post: '1', commentBy: 'test-user', comment: 'this is a comment'})
       })
   })
+
+  it('deletes a comment from the database when given an idea via DELETE', async () => {
+    await User.insert(user);
+
+    await request(app)
+      .post('/api/v1/posts')
+      .send(post)
+
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment)
+
+    return request(app)
+      .delete('/api/v1/comments/1')
+      .then((res) => {
+        expect(res.body).toEqual({id: '1', post: '1', commentBy: 'test-user', comment: 'this is a comment'})
+      })
+  })
+
 
 });
