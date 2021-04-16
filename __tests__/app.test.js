@@ -4,6 +4,17 @@ const request = require('supertest');
 const app = require('../lib/app');
 const User = require('../lib/models/User');
 
+const user = {
+  username: 'test-user',
+  photoUrl: '/some-image.jpg'
+};
+
+const post = {
+  photoUrl: '/some-image.jpg',
+  caption: 'new image',
+  tags: ['one', 'two', 'three']
+};
+
 // jest.useFakeTimers()
 jest.mock('../lib/middleware/ensureAuth.js', () => (req, res, next) => {
   req.user = {
@@ -18,12 +29,10 @@ describe('Tardygram routes', () => {
     return setup(pool);
   });
 
-
+  //post tests 
   it('inserts a post into the database via POST', async () => {
-    const user = await User.insert({
-      username: 'test-user',
-      photoUrl: '/some-image.jpg'
-    })
+    await User.insert(user);
+
     return request(app)
       .post('/api/v1/posts')
       .send({
@@ -37,18 +46,10 @@ describe('Tardygram routes', () => {
   })
 
   it('gets all posts', async () => {
-    const user = await User.insert({
-      username: 'test-user',
-      photoUrl: '/some-image.jpg'
-    })
-
-    const post = await request(app)
+    await User.insert(user);
+    await request(app)
       .post('/api/v1/posts')
-      .send({
-        photoUrl: '/some-image.jpg',
-        caption: 'new image',
-        tags: ['one', 'two', 'three']
-      })
+      .send(post)
 
     return request(app)
       .get('/api/v1/posts')
@@ -56,4 +57,38 @@ describe('Tardygram routes', () => {
         expect(res.body).toEqual([{id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']}])
       })
   })
+  it('gets a posts when given an id', async () => {
+    await User.insert(user);
+
+    await request(app)
+      .post('/api/v1/posts')
+      .send(post)
+
+    return request(app)
+      .get('/api/v1/posts/1')
+      .then((res) => {
+        expect(res.body).toEqual({id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']})
+      })
+  })
+
+  // comment tests
+
+  it('inserts a comment into the database via POST', async () => {
+    await User.insert(user);
+
+    await request(app)
+      .post('/api/v1/posts')
+      .send(post)
+
+    return request(app)
+      .post('/api/v1/comments')
+      .send({
+        comment: 'this is a comment',
+        post: '1',
+      })
+      .then((res) => {
+        expect(res.body).toEqual({id: '1', post: '1', commentBy: 'test-user', comment: 'this is a comment'})
+      })
+  })
+
 });
