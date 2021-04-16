@@ -17,10 +17,14 @@ const post = {
 
 const comment = {
   comment: 'this is a comment',
-  post: '1',
+  post: 1,
 };
 
-// jest.useFakeTimers()
+const comment2 = {
+  comment: 'this is another comment',
+  post: 1,
+};
+
 jest.mock('../lib/middleware/ensureAuth.js', () => (req, res, next) => {
   req.user = {
     username: 'test-user',
@@ -33,6 +37,7 @@ describe('Tardygram routes', () => {
   beforeEach(() => {
     return setup(pool);
   });
+
 
   //post tests 
   it('inserts a post into the database via POST', async () => {
@@ -70,10 +75,24 @@ describe('Tardygram routes', () => {
       .post('/api/v1/posts')
       .send(post)
 
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment)
+      .then(console.log(comment))
+
     return request(app)
       .get('/api/v1/posts/1')
       .then((res) => {
-        expect(res.body).toEqual({id: "1", username: 'test-user', photoUrl: '/some-image.jpg', caption: 'new image', tags: ['one', 'two', 'three']})
+        expect(res.body).toEqual(
+          {
+            caption: "new image",
+            comments: ["this is a comment"],
+            id: "1",
+            photoUrl: "/some-image.jpg",
+            tags: ["one", "two", "three"],
+            username: "test-user"
+          }
+        )
       })
   })
 
@@ -106,6 +125,10 @@ describe('Tardygram routes', () => {
     await request(app)
       .post('/api/v1/comments')
       .send(comment)
+
+    await request(app)
+      .post('/api/v1/comments')
+      .send(comment2)
 
     return request(app)
       .delete('/api/v1/comments/1')
