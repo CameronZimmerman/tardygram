@@ -188,4 +188,54 @@ describe('Tardygram routes', () => {
         });
       });
   });
+
+  it('gets the top 10 most popular posts from the database via GET', async () => {
+    await User.insert(user);
+
+    const postsArray = Array(20)
+      .fill()
+      .map((post) => {
+        return request(app)
+          .post('/api/v1/posts')
+          .send({
+            photoUrl: Math.random().toString(36).substring(7),
+            caption: Math.random().toString(36).substring(7),
+            tags: ['one', 'two', 'three'],
+          });
+      });
+    const postsResults = await (await Promise.all(postsArray)).map(
+      (result) => result.body
+    );
+
+    const commentsArray = Array(100)
+      .fill()
+      .map(() => {
+        const randId = Math.floor(Math.random() * postsArray.length) + 1;
+        return request(app)
+          .post('/api/v1/comments')
+          .send({
+            comment: Math.random().toString(36).substring(7),
+            post: randId,
+          });
+      });
+    const commentsResults = await Promise.all(commentsArray);
+    const resultsArr = commentsResults.map((result) => result.body);
+
+    return request(app)
+      .get('/api/v1/posts/popular')
+      .then((res) => {
+        expect(res.body).toEqual(expect.arrayContaining([
+          {
+            caption: expect.any(String),
+            id: expect.any(String),
+            photoUrl: expect.any(String),
+            tags: ['one', 'two', 'three'],
+            username: 'test-user',
+            comments: expect.any(Array),
+          },
+        ]));
+        expect(res.body.length === 10).toEqual(true);
+        expect(res.body[0].comments.length > res.body[9].comments.length).toEqual(true);
+      });
+  });
 });
