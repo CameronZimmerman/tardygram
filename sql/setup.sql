@@ -16,6 +16,6 @@ tags text[]
 create table comments(
 id bigint generated always as identity primary key,
 comment_by text not null references users(github_username),
-post bigint not null references posts(id),
+post bigint not null references posts(id) on delete cascade,
 comment text not null
 );
